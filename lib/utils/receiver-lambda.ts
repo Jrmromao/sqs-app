@@ -1,32 +1,34 @@
 import { PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Code, Function as Lambda, Runtime } from "aws-cdk-lib/aws-lambda";
-import { IQueue } from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 import { join } from "path";
-import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface IReceiverInput {
   scope: Construct;
   id: string;
-  eventQueue: IQueue;
 }
 
 export class ReceiverLambda {
   lambda: Lambda;
 
-  constructor({ scope, id, eventQueue }: IReceiverInput) {
+  constructor({ scope, id }: IReceiverInput) {
     const role = new Role(scope, "ReadMessage", {
       roleName: "ReadEventRole",
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      
     });
 
     role.addToPolicy(
       new PolicyStatement({
         resources: ["*"],
         actions: [
-          "sqs:GetQueueAttributes",
-          "sqs:ReceiveMessage",
+          "sqs:*",
           "kms:Decrypt",
+          "cloudwatch:*",
+          "logs:*",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:GetRole",
         ],
       })
     );
@@ -47,10 +49,6 @@ export class ReceiverLambda {
       ),
       role: role,
     });
-  
-    const eventSource = new  SqsEventSource(eventQueue);
-    this.lambda.addEventSource(eventSource);
-  
   }
 
   getLambda() {

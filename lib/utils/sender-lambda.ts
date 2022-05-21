@@ -3,7 +3,6 @@ import { SqsDestination } from "aws-cdk-lib/aws-lambda-destinations";
 import { IQueue } from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 import { join } from "path";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 
 interface ISenderInput {
@@ -41,7 +40,7 @@ export class SenderLambda {
       code: Code.fromAsset(
         join(__dirname, "..", "..", "Lambdas", "send-envent-lambda", "core")
       ),
-    //   role: role,
+      role: role,
       onSuccess: new SqsDestination(onSuccessQueue),
     });
 
